@@ -4,8 +4,8 @@ import datetime
 import schedule
 from fbprophet import Prophet
 
-access = "wMSuaZJG16Se1o6jtYxvy176juUgYL99wq1INKvH"
-secret = "PTUXyvKIq5RpY91Ndyq8NHJ7E3K8eJxVITeqoKux"
+access = "YigA8FtxNT3e13Ge6XnJiwVC5Tj9t7mP06jUnLsx"
+secret = "JWVnKHeM4iqQEadxWj2j8xKGzI1xvZttZbNUwX0b"
 
 def get_target_price(ticker, k):
     """변동성 돌파 전략으로 매수 목표가 조회"""
@@ -32,7 +32,7 @@ def get_balance(ticker):
 
 def get_current_price(ticker):
     """현재가 조회"""
-    return pyupbit.get_orderbook(tickers=ticker)[0]["orderbook_units"][0]["ask_price"]
+    return pyupbit.get_orderbook(ticker=ticker)["orderbook_units"][0]["ask_price"]
 
 predicted_close_price = 0
 def predict_price(ticker):
@@ -52,8 +52,8 @@ def predict_price(ticker):
         closeDf = forecast[forecast['ds'] == data.iloc[-1]['ds'].replace(hour=9)]
     closeValue = closeDf['yhat'].values[0]
     predicted_close_price = closeValue
-predict_price("KRW-ETH")
-schedule.every().hour.do(lambda: predict_price("KRW-ETH"))
+predict_price("KRW-XRP")
+schedule.every().hour.do(lambda: predict_price("KRW-XRP"))
 
 # 로그인
 upbit = pyupbit.Upbit(access, secret)
@@ -63,21 +63,21 @@ print("autotrade start")
 while True:
     try:
         now = datetime.datetime.now()
-        start_time = get_start_time("KRW-ETH")
+        start_time = get_start_time("KRW-XRP")
         end_time = start_time + datetime.timedelta(days=1)
         schedule.run_pending()
 
         if start_time < now < end_time - datetime.timedelta(seconds=10):
-            target_price = get_target_price("KRW-ETH", 0.3)
-            current_price = get_current_price("KRW-ETH")
+            target_price = get_target_price("KRW-XRP", 0.5)
+            current_price = get_current_price("KRW-XRP")
             if target_price < current_price and current_price < predicted_close_price:
                 krw = get_balance("KRW")
                 if krw > 5000:
-                    upbit.buy_market_order("KRW-ETH", krw*1)
+                    upbit.buy_market_order("KRW-XRP", krw*0.9995)
         else:
-            ETH = get_balance("ETH")
-            if ETH > 0.00008:
-                upbit.sell_market_order("KRW-ETH", ETH*1)
+            xrp = get_balance("XRP")
+            if xrp > 0.00008:
+                upbit.sell_market_order("KRW-XRP", btc*0.9995)
         time.sleep(1)
     except Exception as e:
         print(e)
